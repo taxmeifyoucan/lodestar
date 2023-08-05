@@ -24,7 +24,7 @@ export async function* onBeaconBlocksByRange(
     // Chain of blobs won't change
     for await (const {key, value} of finalized.binaryEntriesStream({gte: startSlot, lt: endSlot})) {
       yield {
-        data: value,
+        data: await chain.blindedBlockToFullBytes(value),
         fork: chain.config.getForkName(finalized.decodeKey(key)),
       };
     }
@@ -54,8 +54,10 @@ export async function* onBeaconBlocksByRange(
           throw new ResponseError(RespStatus.SERVER_ERROR, `No item for root ${block.blockRoot} slot ${block.slot}`);
         }
 
+        // It's a bis sus that deleting this line will still let the code compile..
+        // This code MUST include tests to ensure ReqResp works with full or blinded blocks
         yield {
-          data: blockBytes,
+          data: await chain.blindedBlockToFullBytes(blockBytes),
           fork: chain.config.getForkName(block.slot),
         };
       }
