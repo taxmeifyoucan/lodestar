@@ -562,10 +562,9 @@
   resolved "https://registry.yarnpkg.com/@chainsafe/is-ip/-/is-ip-2.0.1.tgz#62cb285669d91f88fd9fa285048dde3882f0993b"
   integrity sha512-nqSJ8u2a1Rv9FYbyI8qpDhTYujaKEyLknNrTejLYoSWmdeg+2WB7R6BZqPZYfrJzDxVi3rl6ZQuoaEvpKRZWgQ==
 
-"@chainsafe/libp2p-gossipsub@^10.0.0":
+"@chainsafe/libp2p-gossipsub@github://tuyennhv/js-libp2p-gossipsub.git#tuyennhv_protons":
   version "10.0.0"
-  resolved "https://registry.yarnpkg.com/@chainsafe/libp2p-gossipsub/-/libp2p-gossipsub-10.0.0.tgz#581ea3f4248567a20b53c9b81f8ae414311b96fb"
-  integrity sha512-ha4Sb78h3agTPlwl1gKLYUfGH41kEO9L50Ag3bj9D2tbsImhG4r/ahA4CD+21lbhSLxbkNirSZb955dg1HO65g==
+  resolved "https://codeload.github.com/tuyennhv/js-libp2p-gossipsub/tar.gz/9e7f09d3c358fcfdec6c025a13b6e0ac7daca247"
   dependencies:
     "@libp2p/crypto" "^2.0.0"
     "@libp2p/interface" "^0.1.0"
@@ -581,6 +580,7 @@
     it-pushable "^3.2.0"
     multiformats "^12.0.1"
     protobufjs "^7.2.4"
+    protons-runtime "^3.1.0"
     uint8arraylist "^2.4.3"
     uint8arrays "^4.0.4"
 
@@ -11541,6 +11541,14 @@ protocols@^2.0.0, protocols@^2.0.1:
   resolved "https://registry.yarnpkg.com/protocols/-/protocols-2.0.1.tgz#8f155da3fc0f32644e83c5782c8e8212ccf70a86"
   integrity sha512-/XJ368cyBJ7fzLMwLKv1e4vLxOju2MNAIokcr7meSaNcVbWz/CPcW22cP04mwxOErdA5mwjA8Q6w/cdAQxVn7Q==
 
+protons-runtime@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/protons-runtime/-/protons-runtime-3.1.0.tgz#500918da4a2d97aa28007f30c3f2f7021e05c0b2"
+  integrity sha512-S1iSPQC0McdHKJRi0XcATBkWgwWPx46UDfrnshYDXBvGHSYqkFtn4MQ8Gatf67w7FzFtHivA+Hb0ZPq56upG8w==
+  dependencies:
+    protobufjs "^7.0.0"
+    uint8arraylist "^2.3.2"
+
 protons-runtime@^5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/protons-runtime/-/protons-runtime-5.0.0.tgz#1eb3c78637ff02cc90bb030e3bff6f0402109c25"
@@ -13508,7 +13516,7 @@ uint8-varint@^1.0.6:
     uint8arraylist "^2.0.0"
     uint8arrays "^4.0.2"
 
-uint8arraylist@^2.0.0, uint8arraylist@^2.4.1, uint8arraylist@^2.4.3:
+uint8arraylist@^2.0.0, uint8arraylist@^2.3.2, uint8arraylist@^2.4.1, uint8arraylist@^2.4.3:
   version "2.4.3"
   resolved "https://registry.yarnpkg.com/uint8arraylist/-/uint8arraylist-2.4.3.tgz#1148aa979b407d382e4eb8d9c8f2b4bf3f5910d5"
   integrity sha512-oEVZr4/GrH87K0kjNce6z8pSCzLEPqHNLNR5sj8cJOySrTP8Vb/pMIbZKLJGhQKxm1TiZ31atNrpn820Pyqpow==
