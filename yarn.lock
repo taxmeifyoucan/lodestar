@@ -562,9 +562,9 @@
   resolved "https://registry.yarnpkg.com/@chainsafe/is-ip/-/is-ip-2.0.1.tgz#62cb285669d91f88fd9fa285048dde3882f0993b"
   integrity sha512-nqSJ8u2a1Rv9FYbyI8qpDhTYujaKEyLknNrTejLYoSWmdeg+2WB7R6BZqPZYfrJzDxVi3rl6ZQuoaEvpKRZWgQ==
 
-"@chainsafe/libp2p-gossipsub@github://tuyennhv/js-libp2p-gossipsub.git#tuyennhv_protons_3":
+"@chainsafe/libp2p-gossipsub@github://tuyennhv/js-libp2p-gossipsub.git#tuyennhv_protons_4":
   version "10.0.0"
-  resolved "https://codeload.github.com/tuyennhv/js-libp2p-gossipsub/tar.gz/1e22578f5e42ff8b689f2e0e7216c98babdbc214"
+  resolved "https://codeload.github.com/tuyennhv/js-libp2p-gossipsub/tar.gz/94e836ee5046da70708245530b576b2d8e5a5d8d"
   dependencies:
     "@libp2p/crypto" "^2.0.0"
     "@libp2p/interface" "^0.1.0"
