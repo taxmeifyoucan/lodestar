@@ -10,6 +10,7 @@ import {BeaconConfig} from "@lodestar/config";
 import {Logger} from "@lodestar/utils";
 
 import {IForkChoice, ProtoBlock} from "@lodestar/fork-choice";
+import {ForkSeq} from "@lodestar/params";
 import {IEth1ForBlockProduction} from "../eth1/index.js";
 import {IExecutionEngine, IExecutionBuilder} from "../execution/index.js";
 import {Metrics} from "../metrics/metrics.js";
@@ -144,7 +145,7 @@ export interface IBeaconChain {
   ): Promise<{block: allForks.BlindedBeaconBlock; executionPayloadValue: Wei}>;
 
   blindedBlockToFull(block: allForks.FullOrBlindedSignedBeaconBlock): Promise<allForks.SignedBeaconBlock>;
-  blindedBlockToFullBytes(block: Uint8Array): Promise<Uint8Array>;
+  blindedBlockToFullBytes(forkSeq: ForkSeq, block: Uint8Array): Promise<Uint8Array>;
 
   /** Process a block until complete */
   processBlock(block: BlockInput, opts?: ImportBlockOpts): Promise<void>;
