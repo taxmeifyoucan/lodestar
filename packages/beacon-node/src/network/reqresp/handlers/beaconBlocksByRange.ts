@@ -25,7 +25,7 @@ export async function* onBeaconBlocksByRange(
     for await (const {key, value} of finalized.binaryEntriesStream({gte: startSlot, lt: endSlot})) {
       const {name, seq} = chain.config.getForkInfo(finalized.decodeKey(key));
       yield {
-        data: await chain.blindedBlockToFullBytes(seq, value),
+        data: await chain.blindedOrFullToFullBytes(seq, value),
         fork: name,
       };
     }
@@ -60,7 +60,7 @@ export async function* onBeaconBlocksByRange(
         // This code MUST include tests to ensure ReqResp works with full or blinded blocks
         const {name, seq} = chain.config.getForkInfo(block.slot);
         yield {
-          data: await chain.blindedBlockToFullBytes(seq, blockBytes),
+          data: await chain.blindedOrFullToFullBytes(seq, blockBytes),
           fork: name,
         };
       }
