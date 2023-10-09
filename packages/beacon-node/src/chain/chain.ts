@@ -25,7 +25,6 @@ import {
   deneb,
   Wei,
   bellatrix,
-  capella,
 } from "@lodestar/types";
 import {CheckpointWithHex, ExecutionStatus, IForkChoice, ProtoBlock} from "@lodestar/fork-choice";
 import {ProcessShutdownCallback} from "@lodestar/validator";
@@ -45,8 +44,8 @@ import {
   blindedOrFullBlockToFull,
   blindedOrFullBlockToFullBytes,
   getEth1BlockHashFromSerializedBlock,
-  TransactionsAndWithdrawals,
 } from "../util/fullOrBlindedBlock.js";
+import {ExecutionPayloadBody} from "../execution/engine/types.js";
 import {CheckpointStateCache, StateContextCache} from "./stateCache/index.js";
 import {BlockProcessor, ImportBlockOpts} from "./blocks/index.js";
 import {ChainEventEmitter, ChainEvent} from "./emitter.js";
@@ -669,20 +668,12 @@ export class BeaconChain implements IBeaconChain {
   private async getTransactionsAndWithdrawals(
     forkSeq: ForkSeq,
     blockHash: string
-  ): Promise<TransactionsAndWithdrawals> {
-    let transactions: Uint8Array[] | undefined;
-    let withdrawals: capella.Withdrawals | undefined;
-
-    if (forkSeq >= ForkSeq.bellatrix) {
-      const [payload] = await this.executionEngine.getPayloadBodiesByHash([blockHash]);
-      if (payload?.transactions) transactions = payload.transactions;
-      if (payload?.withdrawals) withdrawals = payload.withdrawals;
+  ): Promise<Partial<ExecutionPayloadBody>> {
+    if (forkSeq < ForkSeq.bellatrix) {
+      return {};
     }
-
-    return {
-      transactions,
-      withdrawals,
-    };
+    const [payload] = await this.executionEngine.getPayloadBodiesByHash([blockHash]);
+    return payload ? payload : {};
   }
 
   /**
