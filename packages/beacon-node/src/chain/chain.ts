@@ -46,6 +46,7 @@ import {
   getEth1BlockHashFromSerializedBlock,
 } from "../util/fullOrBlindedBlock.js";
 import {ExecutionPayloadBody} from "../execution/engine/types.js";
+import {Eth1Error, Eth1ErrorCode} from "../eth1/errors.js";
 import {CheckpointStateCache, StateContextCache} from "./stateCache/index.js";
 import {BlockProcessor, ImportBlockOpts} from "./blocks/index.js";
 import {ChainEventEmitter, ChainEvent} from "./emitter.js";
@@ -673,7 +674,16 @@ export class BeaconChain implements IBeaconChain {
       return {};
     }
     const [payload] = await this.executionEngine.getPayloadBodiesByHash([blockHash]);
-    return payload ? payload : {};
+    if (!payload) {
+      throw new Eth1Error(
+        {code: Eth1ErrorCode.INVALID_PAYLOAD_BODY, blockHash},
+        "payload body not found by eth1 engine"
+      );
+    }
+    if (forkSeq >= ForkSeq.capella && !payload.withdrawals) {
+      throw new Eth1Error({code: Eth1ErrorCode.INVALID_PAYLOAD_BODY, blockHash}, "no withdrawals in payload body");
+    }
+    return payload;
   }
 
   /**
