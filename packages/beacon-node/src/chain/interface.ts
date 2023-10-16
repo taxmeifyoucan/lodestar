@@ -145,7 +145,7 @@ export interface IBeaconChain {
   ): Promise<{block: allForks.BlindedBeaconBlock; executionPayloadValue: Wei}>;
 
   blindedOrFullBlockToFull(block: allForks.FullOrBlindedSignedBeaconBlock): Promise<allForks.SignedBeaconBlock>;
-  blindedOrFullBlockToFullBytes(forkSeq: ForkSeq, block: Uint8Array): AsyncIterable<Uint8Array>;
+  blindedOrFullBlockToFullBytes(forkSeq: ForkSeq, block: Uint8Array): Promise<Uint8Array>;
 
   /** Process a block until complete */
   processBlock(block: BlockInput, opts?: ImportBlockOpts): Promise<void>;
