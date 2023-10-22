@@ -25,7 +25,7 @@ export async function* onBeaconBlocksByRange(
     for await (const {key, value} of finalized.binaryEntriesStream({gte: startSlot, lt: endSlot})) {
       const {name, seq} = chain.config.getForkInfo(finalized.decodeKey(key));
       yield {
-        data: await chain.blindedOrFullToFullBytes(seq, value),
+        data: await chain.blindedOrFullBlockToFullBytes(seq, value),
         fork: name,
       };
     }
@@ -57,7 +57,7 @@ export async function* onBeaconBlocksByRange(
 
         const {name, seq} = chain.config.getForkInfo(block.slot);
         yield {
-          data: await chain.blindedOrFullToFullBytes(seq, blockBytes),
+          data: await chain.blindedOrFullBlockToFullBytes(seq, blockBytes),
           fork: name,
         };
       }
