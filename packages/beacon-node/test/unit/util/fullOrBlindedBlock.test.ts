@@ -1,4 +1,4 @@
-import {expect} from "chai";
+import {describe, it, expect} from "vitest";
 import {ForkInfo} from "@lodestar/config";
 import {allForks, capella} from "@lodestar/types";
 import {isForkExecution} from "@lodestar/params";
