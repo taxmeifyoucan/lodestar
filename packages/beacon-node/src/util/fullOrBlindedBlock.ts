@@ -3,7 +3,7 @@ import {allForks, bellatrix, capella, deneb} from "@lodestar/types";
 import {BYTES_PER_LOGS_BLOOM, ForkSeq, SYNC_COMMITTEE_SIZE} from "@lodestar/params";
 import {executionPayloadToPayloadHeader} from "@lodestar/state-transition";
 import {ExecutionPayloadBody} from "../execution/engine/types.js";
-import {ROOT_SIZE, getSlotFromSignedBeaconBlockSerialized} from "./sszBytes.js";
+import {getSlotFromSignedBeaconBlockSerialized} from "./sszBytes.js";
 
 /**
  *  * class SignedBeaconBlock(Container):
@@ -49,15 +49,7 @@ const BEACON_BLOCK_FIXED_LENGTH = 8 + 8 + 32 + 32 + 4;
  * Deneb:
  *   blobKzgCommitments             [offset -  4 bytes]
  */
-
-const LOCATION_OF_ETH1_BLOCK_HASH = 96 + 32 + 8;
-export function getEth1BlockHashFromSerializedBlock(block: Uint8Array): Uint8Array {
-  const firstByte = SIGNED_BEACON_BLOCK_FIXED_LENGTH + BEACON_BLOCK_FIXED_LENGTH + LOCATION_OF_ETH1_BLOCK_HASH;
-  return block.slice(firstByte, firstByte + ROOT_SIZE);
-}
-
-const LOCATION_OF_EXECUTION_PAYLOAD_OFFSET =
-  LOCATION_OF_ETH1_BLOCK_HASH + 32 + 32 + 4 + 4 + 4 + 4 + 4 + SYNC_COMMITTEE_SIZE / 8 + 96;
+const LOCATION_OF_EXECUTION_PAYLOAD_OFFSET = 96 + 32 + 8 + 32 + 32 + 4 + 4 + 4 + 4 + 4 + SYNC_COMMITTEE_SIZE / 8 + 96;
 
 /**
  * class ExecutionPayload(Container) or class ExecutionPayloadHeader(Container)

@@ -29,7 +29,7 @@ import {
 import {CheckpointWithHex, ExecutionStatus, IForkChoice, ProtoBlock} from "@lodestar/fork-choice";
 import {ProcessShutdownCallback} from "@lodestar/validator";
 import {Logger, isErrorAborted, pruneSetToMax, sleep, toHex} from "@lodestar/utils";
-import {ForkSeq, SLOTS_PER_EPOCH} from "@lodestar/params";
+import {ForkSeq, SLOTS_PER_EPOCH, GENESIS_SLOT} from "@lodestar/params";
 
 import {toHexString} from "@lodestar/utils";
 import {GENESIS_EPOCH, ZERO_HASH} from "../constants/index.js";
@@ -43,7 +43,6 @@ import {isOptimisticBlock} from "../util/forkChoice.js";
 import {
   blindedOrFullBlockToFull,
   deserializeFullOrBlindedSignedBeaconBlock,
-  getEth1BlockHashFromSerializedBlock,
   serializeFullOrBlindedSignedBeaconBlock,
 } from "../util/fullOrBlindedBlock.js";
 import {ExecutionPayloadBody} from "../execution/engine/types.js";
@@ -470,6 +469,7 @@ export class BeaconChain implements IBeaconChain {
   }
 
   async blindedOrFullBlockToFull(block: allForks.FullOrBlindedSignedBeaconBlock): Promise<allForks.SignedBeaconBlock> {
+    if (block.message.slot === GENESIS_SLOT) return block;
     const info = this.config.getForkInfo(block.message.slot);
     return blindedOrFullBlockToFull(
       this.config,
@@ -479,15 +479,10 @@ export class BeaconChain implements IBeaconChain {
     );
   }
 
-  async blindedOrFullBlockToFullBytes(forkSeq: ForkSeq, block: Uint8Array): Promise<Uint8Array> {
+  async blindedOrFullBlockToFullBytes(block: Uint8Array): Promise<Uint8Array> {
     return serializeFullOrBlindedSignedBeaconBlock(
       this.config,
-      blindedOrFullBlockToFull(
-        this.config,
-        forkSeq,
-        deserializeFullOrBlindedSignedBeaconBlock(this.config, block),
-        await this.getTransactionsAndWithdrawals(forkSeq, toHexString(getEth1BlockHashFromSerializedBlock(block)))
-      )
+      await this.blindedOrFullBlockToFull(deserializeFullOrBlindedSignedBeaconBlock(this.config, block))
     );
   }
 

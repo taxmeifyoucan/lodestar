@@ -38,11 +38,9 @@ export async function* onBeaconBlocksByRoot(
         slot = slotFromBytes;
       }
 
-      const {name, seq} = chain.config.getForkInfo(slot);
-
       yield {
-        data: await chain.blindedOrFullBlockToFullBytes(seq, blockBytes),
-        fork: name,
+        data: await chain.blindedOrFullBlockToFullBytes(blockBytes),
+        fork: chain.config.getForkName(slot),
       };
     }
   }

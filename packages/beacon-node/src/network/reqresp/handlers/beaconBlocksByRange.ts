@@ -23,10 +23,9 @@ export async function* onBeaconBlocksByRange(
   if (startSlot <= finalizedSlot) {
     // Chain of blobs won't change
     for await (const {key, value} of finalized.binaryEntriesStream({gte: startSlot, lt: endSlot})) {
-      const {name, seq} = chain.config.getForkInfo(finalized.decodeKey(key));
       yield {
-        data: await chain.blindedOrFullBlockToFullBytes(seq, value),
-        fork: name,
+        data: await chain.blindedOrFullBlockToFullBytes(value),
+        fork: chain.config.getForkName(finalized.decodeKey(key)),
       };
     }
   }
@@ -55,10 +54,9 @@ export async function* onBeaconBlocksByRange(
           throw new ResponseError(RespStatus.SERVER_ERROR, `No item for root ${block.blockRoot} slot ${block.slot}`);
         }
 
-        const {name, seq} = chain.config.getForkInfo(block.slot);
         yield {
-          data: await chain.blindedOrFullBlockToFullBytes(seq, blockBytes),
-          fork: name,
+          data: await chain.blindedOrFullBlockToFullBytes(blockBytes),
+          fork: chain.config.getForkName(block.slot),
         };
       }
 
