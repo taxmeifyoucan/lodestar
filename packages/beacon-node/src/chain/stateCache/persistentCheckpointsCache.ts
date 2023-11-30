@@ -87,10 +87,10 @@ export class PersistentCheckpointStateCache implements CheckpointStateCache {
           const {epoch} = fromCheckpointKey(key);
           if (isPersistentKey(stateOrPersistentKey)) {
             persistCount++;
-            memoryEpochs.add(epoch);
+            persistentEpochs.add(epoch);
           } else {
             stateCount++;
-            persistentEpochs.add(epoch);
+            memoryEpochs.add(epoch);
           }
         }
         metrics.cpStateCache.size.set({type: CacheType.persistence}, persistCount);
