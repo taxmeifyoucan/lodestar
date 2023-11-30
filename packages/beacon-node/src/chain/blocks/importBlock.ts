@@ -339,10 +339,10 @@ export async function importBlock(
     // This is the real check point state per spec because the root is in current epoch
     // it's important to add this to cache, when chain is finalized we'll query this state later
     const checkpointState = postState;
-    const cp = getCheckpointFromState(checkpointState);
     // add Current Root Checkpoint State to the checkpoint state cache
     // this could be the justified/finalized checkpoint state later according to https://github.com/ethereum/consensus-specs/blob/v1.4.0-beta.2/specs/phase0/beacon-chain.md
     if (block.message.slot % SLOTS_PER_EPOCH === 0) {
+      const cp = getCheckpointFromState(checkpointState);
       this.regen.addCheckpointState(cp, checkpointState);
     }
 
