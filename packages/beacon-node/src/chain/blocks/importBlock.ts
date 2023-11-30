@@ -344,10 +344,10 @@ export async function importBlock(
     if (block.message.slot % SLOTS_PER_EPOCH === 0) {
       const cp = getCheckpointFromState(checkpointState);
       this.regen.addCheckpointState(cp, checkpointState);
+      // Note: in-lined code from previos handler of ChainEvent.checkpoint
+      this.logger.verbose("Checkpoint processed", toCheckpointHex(cp));
     }
 
-    // Note: in-lined code from previos handler of ChainEvent.checkpoint
-    this.logger.verbose("Checkpoint processed", toCheckpointHex(cp));
 
     const activeValidatorsCount = checkpointState.epochCtx.currentShuffling.activeIndices.length;
     this.metrics?.currentActiveValidators.set(activeValidatorsCount);
