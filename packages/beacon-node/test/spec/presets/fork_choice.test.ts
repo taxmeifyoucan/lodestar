@@ -1,5 +1,5 @@
 import path from "node:path";
-import {expect} from "chai";
+import {expect} from "vitest";
 import {toHexString} from "@chainsafe/ssz";
 import {BeaconStateAllForks, isExecutionStateType} from "@lodestar/state-transition";
 import {InputType} from "@lodestar/spec-test-util";
