@@ -9,6 +9,7 @@ import {createLibp2p} from "libp2p";
 import {mplex} from "@libp2p/mplex";
 import {prometheusMetrics} from "@libp2p/prometheus-metrics";
 import {tcp} from "@libp2p/tcp";
+import {yamux} from "@chainsafe/libp2p-yamux";
 import {defaultNetworkOptions, NetworkOptions} from "../options.js";
 import {Eth2PeerDataStore} from "../peers/datastore.js";
 import {Libp2p} from "../interface.js";
@@ -85,7 +86,7 @@ export async function createNodeJsLibp2p(
         },
       }),
     ],
-    streamMuxers: [mplex({maxInboundStreams: 256})],
+    streamMuxers: [yamux({maxInboundStreams: 256}), mplex({maxInboundStreams: 256})],
     peerDiscovery,
     metrics: nodeJsLibp2pOpts.metrics
       ? prometheusMetrics({

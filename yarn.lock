@@ -633,6 +633,19 @@
     uint8arraylist "^2.4.3"
     uint8arrays "^4.0.4"
 
+"@chainsafe/libp2p-yamux@^5.0.4":
+  version "5.0.4"
+  resolved "https://registry.yarnpkg.com/@chainsafe/libp2p-yamux/-/libp2p-yamux-5.0.4.tgz#8296b6ffe7b1b527377a1dedb3a36b8ea984ac83"
+  integrity sha512-3cfOjomFde7+6sscoM0gK7cgA5aEm20oYeVXSSonVzaas/UZzNsGP+FnF/bjLATjdyTB+YqhBHJs/KKk1PAy/Q==
+  dependencies:
+    "@libp2p/interface" "^0.1.0"
+    "@libp2p/logger" "^3.0.0"
+    get-iterator "^2.0.1"
+    it-foreach "^2.0.3"
+    it-pipe "^3.0.1"
+    it-pushable "^3.2.0"
+    uint8arraylist "^2.4.3"
+
 "@chainsafe/netmask@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@chainsafe/netmask/-/netmask-2.0.0.tgz#0d4a75f47919f65011da4327a3845c9661f1038a"
@@ -1697,20 +1710,7 @@
   dependencies:
     multiformats "^11.0.0"
 
-"@libp2p/interface@^0.1.0", "@libp2p/interface@^0.1.1", "@libp2p/interface@^0.1.2":
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/@libp2p/interface/-/interface-0.1.2.tgz#4ea5a4fa8bbd46c3fe4c945ff6b8c6d5d41f10b0"
-  integrity sha512-Q5t27434Mvn+R6AUJlRH+q/jSXarDpP+KXVkyGY7S1fKPI2berqoFPqT61bRRBYsCH2OPZiKBB53VUzxL9uEvg==
-  dependencies:
-    "@multiformats/multiaddr" "^12.1.5"
-    abortable-iterator "^5.0.1"
-    it-pushable "^3.2.0"
-    it-stream-types "^2.0.1"
-    multiformats "^12.0.1"
-    p-defer "^4.0.0"
-    uint8arraylist "^2.4.3"
-
-"@libp2p/interface@^0.1.4":
+"@libp2p/interface@^0.1.0", "@libp2p/interface@^0.1.1", "@libp2p/interface@^0.1.2", "@libp2p/interface@^0.1.4":
   version "0.1.6"
   resolved "https://registry.yarnpkg.com/@libp2p/interface/-/interface-0.1.6.tgz#1328cf6086f02c499183489ccb143fe9c159e871"
   integrity sha512-Lzc5cS/hXuoXhuAbVIxJIHLCYmfPcbU0vVgrpMoiP1Qb2Q3ETU4A46GB8s8mWXgSU6tr9RcqerUqzFYD6+OAag==
@@ -8051,6 +8051,11 @@ get-iterator@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/get-iterator/-/get-iterator-2.0.0.tgz#c9ac9f8002e5d8d6b4dc9dae07c30945022a58c1"
   integrity sha512-BDJawD5PU2gZv6Vlp8O28H4GnZcsr3h9gZUvnAP5xXP3WOy/QAoOsyMepSkw21jur+4t5Vppde72ChjhTIzxzg==
+
+get-iterator@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/get-iterator/-/get-iterator-2.0.1.tgz#a904829f61bace789e0d64bd1a504c511a015c3f"
+  integrity sha512-7HuY/hebu4gryTDT7O/XY/fvY9wRByEGdK6QOa4of8npTcv0+NS6frFKABcf6S9EBAsveTuKTsZQQBFMMNILIg==
 
 get-package-type@^0.1.0:
   version "0.1.0"
