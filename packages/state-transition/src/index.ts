@@ -25,7 +25,7 @@ export type {
 // Main state caches
 export {
   createCachedBeaconState,
-  loadUnfinalizedCachedBeaconState,
+  loadCachedBeaconState,
   type BeaconStateCache,
   isCachedBeaconState,
   isStateBalancesNodesPopulated,
