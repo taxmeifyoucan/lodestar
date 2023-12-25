@@ -8,8 +8,13 @@ import {MapTracker} from "./mapMetrics.js";
 import {BlockStateCache} from "./types.js";
 
 export type FIFOBlockStateCacheOpts = {
-  maxStates: number;
+  maxBlockStates?: number;
 };
+
+/**
+ * Regen state if there's a reorg distance > 32 slots.
+ */
+export const DEFAULT_MAX_BLOCK_STATES = 32;
 
 /**
  * New implementation of BlockStateCache that keeps the most recent n states consistently
@@ -44,8 +49,8 @@ export class FIFOBlockStateCache implements BlockStateCache {
   private readonly keyOrder: LinkedList<string>;
   private readonly metrics: Metrics["stateCache"] | null | undefined;
 
-  constructor(opts: FIFOBlockStateCacheOpts, {metrics}: {maxStates?: number; metrics?: Metrics | null}) {
-    this.maxStates = opts.maxStates;
+  constructor(opts: FIFOBlockStateCacheOpts, {metrics}: {metrics?: Metrics | null}) {
+    this.maxStates = opts.maxBlockStates ?? DEFAULT_MAX_BLOCK_STATES;
     this.cache = new MapTracker(metrics?.stateCache);
     if (metrics) {
       this.metrics = metrics.stateCache;

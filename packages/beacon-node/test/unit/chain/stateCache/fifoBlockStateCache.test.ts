@@ -30,7 +30,7 @@ describe("FIFOBlockStateCache", function () {
 
   beforeEach(function () {
     // max 2 items
-    cache = new FIFOBlockStateCache({maxStates: 2}, {});
+    cache = new FIFOBlockStateCache({maxBlockStates: 2}, {});
     cache.add(state1);
     cache.add(state2);
   });

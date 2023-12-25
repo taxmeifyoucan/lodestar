@@ -15,16 +15,16 @@ import {SLOTS_PER_EPOCH} from "@lodestar/params";
 import {ChainForkConfig} from "@lodestar/config";
 import {Metrics} from "../../metrics/index.js";
 import {IBeaconDb} from "../../db/index.js";
-import {CheckpointStateCache, StateContextCache} from "../stateCache/index.js";
 import {getCheckpointFromState} from "../blocks/utils/checkpoint.js";
 import {ChainEvent, ChainEventEmitter} from "../emitter.js";
+import {CheckpointStateCache, BlockStateCache} from "../stateCache/types.js";
 import {IStateRegeneratorInternal, RegenCaller, StateCloneOpts} from "./interface.js";
 import {RegenError, RegenErrorCode} from "./errors.js";
 
 export type RegenModules = {
   db: IBeaconDb;
   forkChoice: IForkChoice;
-  stateCache: StateContextCache;
+  stateCache: BlockStateCache;
   checkpointStateCache: CheckpointStateCache;
   config: ChainForkConfig;
   emitter: ChainEventEmitter;

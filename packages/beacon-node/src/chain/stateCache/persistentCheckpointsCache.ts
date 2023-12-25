@@ -45,6 +45,12 @@ type CacheItem = InMemoryCacheItem | PersistedCacheItem;
 type LoadedStateBytesData = {persistedKey: PersistedKey; stateBytes: Uint8Array};
 
 /**
+ * Before n-historical states, lodestar keeps mostly 3 states in memory with 1 finalized state
+ * Since Jan 2024, lodestar stores the finalized state in disk and keeps up to 2 epochs in memory
+ */
+export const DEFAULT_MAX_CP_STATE_EPOCHS_IN_MEMORY = 2;
+
+/**
  * An implementation of CheckpointStateCache that keep up to n epoch checkpoint states in memory and persist the rest to disk
  * - If it's more than `maxEpochsInMemory` epochs old, it will persist n last epochs to disk based on the view of the block
  * - Once a chain gets finalized we'll prune all states from memory and disk for epochs < finalizedEpoch
@@ -118,10 +124,10 @@ export class PersistentCheckpointStateCache implements CheckpointStateCache {
     }
     this.logger = logger;
     this.clock = clock;
-    if (opts.maxEpochsInMemory < 0) {
+    if (opts.maxCPStateEpochsInMemory !== undefined && opts.maxCPStateEpochsInMemory < 0) {
       throw new Error("maxEpochsInMemory must be >= 0");
     }
-    this.maxEpochsInMemory = opts.maxEpochsInMemory;
+    this.maxEpochsInMemory = opts.maxCPStateEpochsInMemory ?? DEFAULT_MAX_CP_STATE_EPOCHS_IN_MEMORY;
     // Specify different persistentApis for testing
     this.persistentApis = persistentApis;
     this.shufflingCache = shufflingCache;

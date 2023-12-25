@@ -80,7 +80,10 @@ import {SeenAttestationDatas} from "./seenCache/seenAttestationData.js";
 import {ShufflingCache} from "./shufflingCache.js";
 import {StateContextCache} from "./stateCache/stateContextCache.js";
 import {SeenGossipBlockInput} from "./seenCache/index.js";
-import {CheckpointStateCache} from "./stateCache/stateContextCheckpointsCache.js";
+import {InMemoryCheckpointStateCache} from "./stateCache/stateContextCheckpointsCache.js";
+import {FIFOBlockStateCache} from "./stateCache/fifoBlockStateCache.js";
+import {PersistentCheckpointStateCache} from "./stateCache/persistentCheckpointsCache.js";
+import {DbPersistentApis} from "./stateCache/persistent/db.js";
 
 /**
  * Arbitrary constants, blobs and payloads should be consumed immediately in the same slot
@@ -240,9 +243,22 @@ export class BeaconChain implements IBeaconChain {
     this.pubkey2index = cachedState.epochCtx.pubkey2index;
     this.index2pubkey = cachedState.epochCtx.index2pubkey;
 
-    const stateCache = new StateContextCache({metrics});
-    const checkpointStateCache = new CheckpointStateCache({metrics});
-
+    const stateCache = this.opts.nHistoricalStates
+      ? new FIFOBlockStateCache(this.opts, {metrics})
+      : new StateContextCache({metrics});
+    const checkpointStateCache = this.opts.nHistoricalStates
+      ? new PersistentCheckpointStateCache(
+          {
+            metrics,
+            logger,
+            clock,
+            shufflingCache: this.shufflingCache,
+            getHeadState: this.getHeadState.bind(this),
+            persistentApis: new DbPersistentApis(this.db),
+          },
+          this.opts
+        )
+      : new InMemoryCheckpointStateCache({metrics});
     const {checkpoint} = computeAnchorCheckpoint(config, anchorState);
     stateCache.add(cachedState);
     stateCache.setHeadState(cachedState);
