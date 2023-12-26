@@ -142,6 +142,7 @@ export class PersistentCheckpointStateCache implements CheckpointStateCache {
     for (const persistedKey of persistedKeys) {
       const cp = this.persistentApis.persistedKeyToCheckpoint(persistedKey);
       this.cache.set(toCheckpointKey(cp), {type: CacheType.persisted, value: persistedKey});
+      this.epochIndex.getOrDefault(cp.epoch).add(toHexString(cp.root));
     }
     this.logger.info("Loaded persisted checkpoint states from the last run", {
       count: persistedKeys.length,
@@ -187,6 +188,7 @@ export class PersistentCheckpointStateCache implements CheckpointStateCache {
       // only remove persisted state once we reload successfully
       const cpKey = toCheckpointKey(cp);
       this.cache.set(cpKey, {type: CacheType.inMemory, state: newCachedState, persistedKey});
+      this.epochIndex.getOrDefault(cp.epoch).add(cp.rootHex);
       // don't prune from memory here, call it at the last 1/3 of slot 0 of an epoch
       return newCachedState;
     } catch (e) {
@@ -271,16 +273,20 @@ export class PersistentCheckpointStateCache implements CheckpointStateCache {
     const cpHex = toCheckpointHex(cp);
     const key = toCheckpointKey(cpHex);
     const cacheItem = this.cache.get(key);
-    if (cacheItem !== undefined) {
-      if (isPersistedCacheItem(cacheItem)) {
-        const persistedKey = cacheItem.value;
-        // was persisted to disk, set back to memory
-        this.cache.set(key, {type: CacheType.inMemory, state, persistedKey});
-      }
-      return;
-    }
     this.metrics?.adds.inc();
-    this.cache.set(key, {type: CacheType.inMemory, state});
+    if (cacheItem !== undefined && isPersistedCacheItem(cacheItem)) {
+      const persistedKey = cacheItem.value;
+      // was persisted to disk, set back to memory
+      this.cache.set(key, {type: CacheType.inMemory, state, persistedKey});
+      this.logger.verbose("Added checkpoint state to memory but a persisted key existed", {
+        epoch: cp.epoch,
+        rootHex: cpHex.rootHex,
+        persistedKey: toHexString(persistedKey),
+      });
+    } else {
+      this.cache.set(key, {type: CacheType.inMemory, state});
+      this.logger.verbose("Added checkpoint state to memory", {epoch: cp.epoch, rootHex: cpHex.rootHex});
+    }
     this.epochIndex.getOrDefault(cp.epoch).add(cpHex.rootHex);
   }
 
