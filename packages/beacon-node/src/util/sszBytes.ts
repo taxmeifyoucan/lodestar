@@ -1,6 +1,8 @@
 import {BitArray, deserializeUint8ArrayBitListFromBytes} from "@chainsafe/ssz";
-import {BLSSignature, RootHex, Slot} from "@lodestar/types";
+import {ChainForkConfig} from "@lodestar/config";
+import {BLSSignature, RootHex, Slot, ssz} from "@lodestar/types";
 import {toHex} from "@lodestar/utils";
+import {getStateTypeFromBytes} from "./multifork.js";
 
 export type BlockRootHex = RootHex;
 export type AttDataBase64 = string;
@@ -202,6 +204,23 @@ export function getSlotFromSignedBlobSidecarSerialized(data: Uint8Array): Slot |
   }
 
   return getSlotFromOffset(data, SLOT_BYTES_POSITION_IN_SIGNED_BLOB_SIDECAR);
+}
+
+type BeaconStateType =
+  | typeof ssz.phase0.BeaconState
+  | typeof ssz.altair.BeaconState
+  | typeof ssz.bellatrix.BeaconState
+  | typeof ssz.capella.BeaconState
+  | typeof ssz.deneb.BeaconState;
+
+export function getValidatorsBytesFromStateBytes(config: ChainForkConfig, stateBytes: Uint8Array): Uint8Array {
+  const stateType = getStateTypeFromBytes(config, stateBytes) as BeaconStateType;
+  const dataView = new DataView(stateBytes.buffer, stateBytes.byteOffset, stateBytes.byteLength);
+  const fieldRanges = stateType.getFieldRanges(dataView, 0, stateBytes.length);
+  const allFields = Object.keys(stateType.fields);
+  const validatorsFieldIndex = allFields.indexOf("validators");
+  const validatorsRange = fieldRanges[validatorsFieldIndex];
+  return stateBytes.slice(validatorsRange.start, validatorsRange.end);
 }
 
 function getSlotFromOffset(data: Uint8Array, offset: number): Slot {

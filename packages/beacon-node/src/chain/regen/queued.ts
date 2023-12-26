@@ -54,6 +54,12 @@ export class QueuedStateRegenerator implements IStateRegenerator {
     this.logger = modules.logger;
   }
 
+  async init(): Promise<void> {
+    if (this.checkpointStateCache.init) {
+      return this.checkpointStateCache.init();
+    }
+  }
+
   canAcceptWork(): boolean {
     return this.jobQueue.jobLen < REGEN_CAN_ACCEPT_WORK_THRESHOLD;
   }
@@ -69,6 +75,14 @@ export class QueuedStateRegenerator implements IStateRegenerator {
 
   getStateSync(stateRoot: RootHex): CachedBeaconStateAllForks | null {
     return this.stateCache.get(stateRoot);
+  }
+
+  async getCheckpointStateOrBytes(cp: CheckpointHex): Promise<CachedBeaconStateAllForks | Uint8Array | null> {
+    return this.checkpointStateCache.getStateOrBytes(cp);
+  }
+
+  async onProcessState(blockRootHex: RootHex, state: CachedBeaconStateAllForks): Promise<number> {
+    return this.checkpointStateCache.processState(blockRootHex, state);
   }
 
   getCheckpointStateSync(cp: CheckpointHex): CachedBeaconStateAllForks | null {
@@ -108,10 +122,13 @@ export class QueuedStateRegenerator implements IStateRegenerator {
     } else {
       // Trigger regen on head change if necessary
       this.logger.warn("Head state not available, triggering regen", {stateRoot: newHeadStateRoot});
+      // it's important to reload state to regen head state here
+      const shouldReload = true;
       // head has changed, so the existing cached head state is no longer useful. Set strong reference to null to free
       // up memory for regen step below. During regen, node won't be functional but eventually head will be available
+      // for legacy StateContextCache only
       this.stateCache.setHeadState(null);
-      this.regen.getState(newHeadStateRoot, RegenCaller.processBlock).then(
+      this.regen.getState(newHeadStateRoot, RegenCaller.processBlock, shouldReload).then(
         (headStateRegen) => this.stateCache.setHeadState(headStateRegen),
         (e) => this.logger.error("Error on head state regen", {}, e)
       );
