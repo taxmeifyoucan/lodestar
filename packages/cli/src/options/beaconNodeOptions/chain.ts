@@ -223,7 +223,7 @@ Will double processing times. Use only for debugging purposes.",
     hidden: true,
     description:
       "Use the new FIFOBlockStateCache and PersistentCheckpointStateCache or not which make lodestar heap size bounded instead of unbounded as before",
-    type: "number",
+    type: "boolean",
     default: defaultOptions.chain.nHistoricalStates,
     group: "chain",
   },
