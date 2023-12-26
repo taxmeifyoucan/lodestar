@@ -143,6 +143,10 @@ export class PersistentCheckpointStateCache implements CheckpointStateCache {
       const cp = this.persistentApis.persistedKeyToCheckpoint(persistedKey);
       this.cache.set(toCheckpointKey(cp), {type: CacheType.persisted, value: persistedKey});
     }
+    this.logger.info("Loaded persisted checkpoint states from the last run", {
+      count: persistedKeys.length,
+      maxEpochsInMemory: this.maxEpochsInMemory,
+    });
   }
 
   /**
