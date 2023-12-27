@@ -214,6 +214,16 @@ export class StateRegenerator implements IStateRegeneratorInternal {
           null
         );
 
+        const stateRoot = toHexString(state.hashTreeRoot());
+        if (b.stateRoot !== stateRoot) {
+          throw new RegenError({
+            slot: b.slot,
+            code: RegenErrorCode.INVALID_STATE_ROOT,
+            actual: stateRoot,
+            expected: b.stateRoot,
+          });
+        }
+
         if (shouldReload) {
           // also with shouldReload flag, we "reload" it to the state cache too
           this.modules.stateCache.add(state);

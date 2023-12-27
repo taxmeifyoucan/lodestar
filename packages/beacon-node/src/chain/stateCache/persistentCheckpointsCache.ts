@@ -178,10 +178,13 @@ export class PersistentCheckpointStateCache implements CheckpointStateCache {
       const newCachedState = loadCachedBeaconState(seedState, stateBytes, {
         shufflingGetter: this.shufflingCache.getSync.bind(this.shufflingCache),
       });
+      newCachedState.commit();
+      const stateRoot = toHexString(newCachedState.hashTreeRoot());
       timer?.();
       this.logger.debug("Reload: cached state load successful", {
         ...logMeta,
         stateSlot: newCachedState.slot,
+        stateRoot,
         seedSlot: seedState.slot,
       });
 
