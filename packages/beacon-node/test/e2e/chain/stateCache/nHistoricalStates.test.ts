@@ -208,6 +208,37 @@ describe(
         numEpochsPersisted: 4,
         // chain is NOT finalized end of test
       },
+      /**
+       * Block slot 28 has parent slot 23, block slot 824 25 26 and 27 are reorged
+       *                 --------------------------------------------|---
+       *                /                  |            ^  ^         ^  ^
+       *               /                   |           28  29       32  33
+       * |----------------|----------------|----------
+       * ^            ^  16        ^    ^  ^  ^  ^  ^
+       * 8           15           19   23 24 25 26  27
+       *reload                             ^
+       *                               PRCS at epoch 3 is persisted, CRCS is pruned
+       */
+      {
+        name: "maxCPStateEpochsInMemory=1, reorg 2 epochs",
+        reorgedSlot: 27,
+        reorgDistance: 13,
+        maxBlockStates: 1,
+        maxCPStateEpochsInMemory: 1,
+        // reload CP state epoch 2 (slot = 16)
+        reloadCount: 1,
+        // 1 cp state for epoch 0 1, 2 CP states for epoch 2, 1 cp state for epoch 3
+        persistCount: 5,
+        // epoch 4, one for Current Root Checkpoint State and one for Previous Root Checkpoint State
+        numStatesInMemory: 2,
+        // chain is not finalized, epoch 4 is in-memory so CP state at epoch 0 1 2 3 are persisted, epoch 2 has 2 CP states
+        numStatesPersisted: 5,
+        // epoch 4
+        numEpochsInMemory: 1,
+        // chain is not finalized, epoch 4 is in-memory so CP state at epoch 0 1 2 3 are persisted
+        numEpochsPersisted: 4,
+        // chain is NOT finalized end of test
+      },
     ];
 
     for (const {
