@@ -119,7 +119,7 @@ export class FIFOBlockStateCache implements BlockStateCache {
         this.keyOrder.insertAfter(head, key);
       }
     }
-    this.prune();
+    this.prune(key);
   }
 
   get size(): number {
@@ -132,17 +132,21 @@ export class FIFOBlockStateCache implements BlockStateCache {
    * it should stay next to head so that it won't be pruned right away.
    * The FIFO cache helps with this.
    */
-  prune(): void {
+  prune(lastAddedKey: string): void {
     while (this.keyOrder.length > this.maxStates) {
-      const key = this.keyOrder.pop();
+      const key = this.keyOrder.last();
+      // it does not make sense to prune the last added state
+      // this only happens when max state is 1 and when state is being regened which is ok
+      // TODO: unit test this
+      if (key === lastAddedKey) {
+        break;
+      }
       if (!key) {
         // should not happen
         throw new Error("No key");
       }
-      const item = this.cache.get(key);
-      if (item) {
-        this.cache.delete(key);
-      }
+      this.keyOrder.pop();
+      this.cache.delete(key);
     }
   }
 
