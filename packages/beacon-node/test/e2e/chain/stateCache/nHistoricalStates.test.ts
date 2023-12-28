@@ -70,7 +70,7 @@ describe(
        *                 24 25 26  27
        * */
       {
-        name: "0 historical state, reorg in same epoch reorgedSlot=27 reorgDistance=3",
+        name: "0 historical state, reorg in same epoch",
         reorgedSlot: 27,
         reorgDistance: 3,
         maxBlockStates: 1,
@@ -100,7 +100,7 @@ describe(
        *                               2 checkpoint states at epoch 3 are persisted
        */
       {
-        name: "0 historical state, reorg 1 epoch reorgedSlot=27 reorgDistance=5",
+        name: "0 historical state, reorg 1 epoch",
         reorgedSlot: 27,
         reorgDistance: 5,
         maxBlockStates: 1,
@@ -127,7 +127,7 @@ describe(
        *                 24 25 26  27
        * */
       {
-        name: "maxCPStateEpochsInMemory=1, reorg in same epoch reorgedSlot=27 reorgDistance=3",
+        name: "maxCPStateEpochsInMemory=1, reorg in same epoch",
         reorgedSlot: 27,
         reorgDistance: 3,
         maxBlockStates: 1,
@@ -146,6 +146,68 @@ describe(
         numEpochsPersisted: 2,
         // chain is finalized at epoch 2 end of test
       },
+      /**
+       * Block slot 28 has parent slot 23, block slot 824 25 26 and 27 are reorged
+       *                                   --------------------------|---
+       *                                 / |            ^  ^         ^  ^
+       *                                /  |           28  29       32  33
+       *                  |----------------|----------
+       *                 16             ^  ^  ^  ^  ^
+       *                               23 24 25 26  27
+       *                                   ^
+       *                               PRCS at epoch 3 is persisted, CRCS is pruned
+       */
+      {
+        name: "maxCPStateEpochsInMemory=1, reorg last slot of previous epoch",
+        reorgedSlot: 27,
+        reorgDistance: 5,
+        maxBlockStates: 1,
+        maxCPStateEpochsInMemory: 1,
+        // PRCS at epoch 3 is available in memory so no need to reload
+        reloadCount: 0,
+        // 1 cp state for epoch 0 1 2 3
+        persistCount: 4,
+        // epoch 4, one for Current Root Checkpoint State and one for Previous Root Checkpoint State
+        numStatesInMemory: 2,
+        // chain is not finalized, epoch 4 is in-memory so CP state at epoch 0 1 2 3 are persisted
+        numStatesPersisted: 4,
+        // epoch 4
+        numEpochsInMemory: 1,
+        // chain is not finalized, epoch 4 is in-memory so CP state at epoch 0 1 2 3 are persisted
+        numEpochsPersisted: 4,
+        // chain is NOT finalized end of test
+      },
+      /**
+       * Block slot 28 has parent slot 23, block slot 824 25 26 and 27 are reorged
+       *                             --------------------------------|---
+       *                            /      |            ^  ^         ^  ^
+       *                           /       |           28  29       32  33
+       *                  |----------------|----------
+       *                 16        ^    ^  ^  ^  ^  ^
+       *                          19   23 24 25 26  27
+       *                                   ^
+       *                               PRCS at epoch 3 is persisted, CRCS is pruned
+       */
+      {
+        name: "maxCPStateEpochsInMemory=1, reorg middle slot of previous epoch",
+        reorgedSlot: 27,
+        reorgDistance: 9,
+        maxBlockStates: 1,
+        maxCPStateEpochsInMemory: 1,
+        // reload CP state epoch 2 (slot = 16)
+        reloadCount: 1,
+        // 1 cp state for epoch 0 1 2 3
+        persistCount: 4,
+        // epoch 4, one for Current Root Checkpoint State and one for Previous Root Checkpoint State
+        numStatesInMemory: 2,
+        // chain is not finalized, epoch 4 is in-memory so CP state at epoch 0 1 2 3 are persisted
+        numStatesPersisted: 4,
+        // epoch 4
+        numEpochsInMemory: 1,
+        // chain is not finalized, epoch 4 is in-memory so CP state at epoch 0 1 2 3 are persisted
+        numEpochsPersisted: 4,
+        // chain is NOT finalized end of test
+      },
     ];
 
     for (const {
@@ -161,7 +223,7 @@ describe(
       numEpochsInMemory,
       numEpochsPersisted,
     } of testCases) {
-      it(name, async function () {
+      it(`${name} reorgedSlot=${reorgedSlot} reorgDistance=${reorgDistance}`, async function () {
         // the node needs time to transpile/initialize bls worker threads
         const genesisSlotsDelay = 7;
         const genesisTime = Math.floor(Date.now() / 1000) + genesisSlotsDelay * testParams.SECONDS_PER_SLOT;
