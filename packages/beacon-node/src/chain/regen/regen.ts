@@ -309,7 +309,6 @@ async function processSlotsToNearestCheckpoint(
     // This may becomes the "official" checkpoint state if the 1st block of epoch is skipped
     const checkpointState = postState;
     const cp = getCheckpointFromState(checkpointState);
-    checkpointStateCache.add(cp, checkpointState);
     if (shouldReload) {
       checkpointStateCache.add(cp, checkpointState);
     }

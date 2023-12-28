@@ -107,11 +107,14 @@ describe("FIFOBlockStateCache", function () {
   it("Should not prune newly added state", () => {
     cache = new FIFOBlockStateCache({maxBlockStates: 1}, {});
     cache.setHeadState(state1);
-    expect(cache.size).toEqual(1, "Size must be same as initial 1");
+    // Size must be same as initial 1
+    expect(cache.size).toEqual(1);
     cache.add(state2);
-    expect(cache.size).toEqual(2, "Should not deleted newly added state");
+    // Should not deleted newly added state
+    expect(cache.size).toEqual(2);
     cache.add(state3);
-    expect(cache.size).toEqual(2, "Should delete 1 state");
+    // Should delete 1 state
+    expect(cache.size).toEqual(2);
     expect(cache.dumpKeyOrder()).toEqual([key1, key3]);
   });
 });
