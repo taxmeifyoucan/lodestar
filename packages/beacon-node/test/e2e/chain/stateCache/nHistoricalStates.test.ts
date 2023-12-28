@@ -100,7 +100,7 @@ describe(
        *                               2 checkpoint states at epoch 3 are persisted
        */
       {
-        name: "0 historical state, reorg 1 epoch reorgedSlot=11 reorgDistance=5",
+        name: "0 historical state, reorg 1 epoch reorgedSlot=27 reorgDistance=5",
         reorgedSlot: 27,
         reorgDistance: 5,
         maxBlockStates: 1,
@@ -116,6 +116,35 @@ describe(
         // epoch 0 1 2 3 4
         numEpochsPersisted: 5,
         // chain is not finalized end of test
+      },
+      /**
+       * Block slot 28 has parent slot 25, block slot 26 and 27 are reorged
+       *                        --------------------|---
+       *                       /       ^  ^         ^  ^
+       *                      /       28  29        32 33
+       * |----------------|----------
+       *                  ^  ^  ^  ^
+       *                 24 25 26  27
+       * */
+      {
+        name: "maxCPStateEpochsInMemory=1, reorg in same epoch reorgedSlot=27 reorgDistance=3",
+        reorgedSlot: 27,
+        reorgDistance: 3,
+        maxBlockStates: 1,
+        maxCPStateEpochsInMemory: 1,
+        // no need to reload as cp state epoch 3 is available in memory
+        reloadCount: 0,
+        // 1 time for epoch 0 1 2 3, cp state epoch 4 is in memory
+        persistCount: 4,
+        // epoch 4, one for Current Root Checkpoint State and one for Previous Root Checkpoint State
+        numStatesInMemory: 2,
+        // epoch 2 3, epoch 4 is in-memory
+        numStatesPersisted: 2,
+        // epoch 3
+        numEpochsInMemory: 1,
+        // epoch 2 3, epoch 4 is in-memory
+        numEpochsPersisted: 2,
+        // chain is finalized at epoch 2 end of test
       },
     ];
 
