@@ -257,6 +257,7 @@ export class BeaconChain implements IBeaconChain {
             clock,
             shufflingCache: this.shufflingCache,
             getHeadState: this.getHeadState.bind(this),
+            bufferPool: this.bufferPool,
             persistentApis: new DbPersistentApis(this.db),
           },
           this.opts
