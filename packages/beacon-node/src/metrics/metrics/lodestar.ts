@@ -1148,6 +1148,10 @@ export function createLodestarMetrics(
         name: "lodestar_cp_state_cache_state_reload_validators_ssz_alloc_count",
         help: "Total number time to allocate memory for validators serialization",
       }),
+      stateReloadShufflingCacheMiss: register.counter({
+        name: "lodestar_cp_state_cache_state_reload_shuffling_cache_miss_count",
+        help: "Total number of shuffling cache misses when loading a state",
+      }),
       stateReloadDuration: register.histogram({
         name: "lodestar_cp_state_cache_state_reload_seconds",
         help: "Histogram of time to load state from db",

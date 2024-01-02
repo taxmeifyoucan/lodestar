@@ -195,7 +195,13 @@ export class PersistentCheckpointStateCache implements CheckpointStateCache {
         seedState,
         stateBytes,
         {
-          shufflingGetter: this.shufflingCache.getSync.bind(this.shufflingCache),
+          shufflingGetter: (shufflingEpoch, decisionRootHex) => {
+            const shuffling = this.shufflingCache.getSync(shufflingEpoch, decisionRootHex);
+            if (shuffling == null) {
+              this.metrics?.stateReloadShufflingCacheMiss.inc();
+            }
+            return shuffling;
+          },
         },
         seedValidatorsBytes
       );
