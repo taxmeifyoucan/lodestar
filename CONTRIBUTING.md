@@ -42,9 +42,8 @@ Contributing to tests:
 ### Debugging Spec Tests
 
 - To fix errors always focus on passing all minimal tests first without running mainnet tests.
-- Spec tests often compare full expected vs actual states in JSON format. To better understand the diff it's convenient to use mocha's option `--inline-diffs`.
-- A single logical error can cause many spec tests to fail. To focus on a single test at a time you can use mocha's option `--bail` to stop at the first failed test
-- To then run only that failed test you can run against a specific file as use mocha's option `--grep` to run only one case
+- A single logical error can cause many spec tests to fail. To focus on a single test at a time you can use vitest's option `--bail 1` to stop at the first failed test
+- To then run only that failed test you can run against a specific file as use vitest's option `-t` to run only one case
 
 ```sh
 LODESTAR_PRESET=minimal ../../node_modules/.bin/mocha --config .mocharc.spec.yml test/spec/phase0/sanity.test.ts --inline-diffs --bail --grep "attestation"
