@@ -46,6 +46,7 @@ export class StateRegenerator implements IStateRegeneratorInternal {
    * - If parent is in same epoch -> Exact state at `block.parentRoot`
    * - If parent is in prev epoch -> State after `block.parentRoot` dialed forward through epoch transition
    * - It's imporant to reload state if needed in this flow
+   * TODO: refactor to getStateForBlockProcessing, this getPreState() api is used to regen state for processed block only
    */
   async getPreState(
     block: allForks.BeaconBlock,
@@ -126,14 +127,14 @@ export class StateRegenerator implements IStateRegeneratorInternal {
     // If a checkpoint state exists with the given checkpoint root, it either is in requested epoch
     // or needs to have empty slots processed until the requested epoch
     if (latestCheckpointStateCtx) {
-      return processSlotsByCheckpoint(this.modules, latestCheckpointStateCtx, slot, opts, shouldReload);
+      return processSlotsByCheckpoint(this.modules, latestCheckpointStateCtx, slot, opts);
     }
 
     // Otherwise, use the fork choice to get the stateRoot from block at the checkpoint root
     // regenerate that state,
     // then process empty slots until the requested epoch
     const blockStateCtx = await this.getState(block.stateRoot, rCaller, shouldReload);
-    return processSlotsByCheckpoint(this.modules, blockStateCtx, slot, opts, shouldReload);
+    return processSlotsByCheckpoint(this.modules, blockStateCtx, slot, opts);
   }
 
   /**
@@ -265,10 +266,9 @@ async function processSlotsByCheckpoint(
   modules: {checkpointStateCache: CheckpointStateCache; metrics: Metrics | null; emitter: ChainEventEmitter},
   preState: CachedBeaconStateAllForks,
   slot: Slot,
-  opts: StateCloneOpts,
-  shouldReload: boolean
+  opts: StateCloneOpts
 ): Promise<CachedBeaconStateAllForks> {
-  let postState = await processSlotsToNearestCheckpoint(modules, preState, slot, opts, shouldReload);
+  let postState = await processSlotsToNearestCheckpoint(modules, preState, slot, opts);
   if (postState.slot < slot) {
     postState = processSlots(postState, slot, opts, modules.metrics);
   }
@@ -286,8 +286,7 @@ async function processSlotsToNearestCheckpoint(
   modules: {checkpointStateCache: CheckpointStateCache; metrics: Metrics | null; emitter: ChainEventEmitter},
   preState: CachedBeaconStateAllForks,
   slot: Slot,
-  opts: StateCloneOpts,
-  shouldReload: boolean
+  opts: StateCloneOpts
 ): Promise<CachedBeaconStateAllForks> {
   const preSlot = preState.slot;
   const postSlot = slot;
@@ -309,9 +308,7 @@ async function processSlotsToNearestCheckpoint(
     // This may becomes the "official" checkpoint state if the 1st block of epoch is skipped
     const checkpointState = postState;
     const cp = getCheckpointFromState(checkpointState);
-    if (shouldReload) {
-      checkpointStateCache.add(cp, checkpointState);
-    }
+    checkpointStateCache.add(cp, checkpointState);
     emitter.emit(ChainEvent.checkpoint, cp, checkpointState);
 
     // this avoids keeping our node busy processing blocks
