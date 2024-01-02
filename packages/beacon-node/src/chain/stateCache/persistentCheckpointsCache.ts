@@ -186,13 +186,22 @@ export class PersistentCheckpointStateCache implements CheckpointStateCache {
     this.logger.debug("Reload: found seed state", {...logMeta, seedSlot: seedState.slot});
 
     try {
-      const timer = this.metrics?.stateReloadDuration.startTimer();
-      const newCachedState = loadCachedBeaconState(seedState, stateBytes, {
-        shufflingGetter: this.shufflingCache.getSync.bind(this.shufflingCache),
-      });
+      const validatorsSszTimer = this.metrics?.stateReloadValidatorsSszDuration.startTimer();
+      // 80% of validators serialization time comes from memory allocation, this is to avoid it
+      const seedValidatorsBytes = this.serializeStateValidators(seedState);
+      validatorsSszTimer?.();
+      const reloadTimer = this.metrics?.stateReloadDuration.startTimer();
+      const newCachedState = loadCachedBeaconState(
+        seedState,
+        stateBytes,
+        {
+          shufflingGetter: this.shufflingCache.getSync.bind(this.shufflingCache),
+        },
+        seedValidatorsBytes
+      );
       newCachedState.commit();
       const stateRoot = toHexString(newCachedState.hashTreeRoot());
-      timer?.();
+      reloadTimer?.();
       this.logger.debug("Reload: cached state load successful", {
         ...logMeta,
         stateSlot: newCachedState.slot,
@@ -635,6 +644,27 @@ export class PersistentCheckpointStateCache implements CheckpointStateCache {
 
     this.metrics?.persistedStateAllocCount.inc();
     return state.serialize();
+  }
+
+  private serializeStateValidators(state: CachedBeaconStateAllForks): Uint8Array {
+    const type = state.type.fields.validators;
+    const size = type.tree_serializedSize(state.validators.node);
+    if (this.bufferPool) {
+      const bufferWithKey = this.bufferPool.alloc(size);
+      if (bufferWithKey) {
+        try {
+          const validatorsBytes = bufferWithKey.buffer;
+          const dataView = new DataView(validatorsBytes.buffer, validatorsBytes.byteOffset, validatorsBytes.byteLength);
+          type.tree_serializeToBytes({uint8Array: validatorsBytes, dataView}, 0, state.validators.node);
+          return validatorsBytes;
+        } finally {
+          this.bufferPool.free(bufferWithKey.key);
+        }
+      }
+    }
+
+    this.metrics?.stateReloadValidatorsSszAllocCount.inc();
+    return state.validators.serialize();
   }
 }
 
