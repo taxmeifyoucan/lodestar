@@ -46,7 +46,7 @@ Contributing to tests:
 - To then run only that failed test you can run against a specific file as use vitest's option `-t` to run only one case
 
 ```sh
-LODESTAR_PRESET=minimal ../../node_modules/.bin/mocha --config .mocharc.spec.yml test/spec/phase0/sanity.test.ts --inline-diffs --bail --grep "attestation"
+../../node_modules/.bin/vitest --run test/unit --bail 1 -t produceBlindedBlock
 ```
 
 ## Docker
