@@ -1070,6 +1070,25 @@ export function createLodestarMetrics(
       }),
     },
 
+    bufferPool: {
+      length: register.gauge({
+        name: "lodestar_buffer_pool_length",
+        help: "Buffer pool length",
+      }),
+      hits: register.counter({
+        name: "lodestar_buffer_pool_hits_total",
+        help: "Total number of buffer pool hits",
+      }),
+      misses: register.counter({
+        name: "lodestar_buffer_pool_misses_total",
+        help: "Total number of buffer pool misses",
+      }),
+      grows: register.counter({
+        name: "lodestar_buffer_pool_grows_total",
+        help: "Total number of buffer pool length increases",
+      }),
+    },
+
     cpStateCache: {
       lookups: register.gauge({
         name: "lodestar_cp_state_cache_lookups_total",
@@ -1143,6 +1162,10 @@ export function createLodestarMetrics(
       persistedStateRemoveCount: register.gauge({
         name: "lodestar_cp_state_cache_persisted_state_remove_count",
         help: "Total number of persisted states removed",
+      }),
+      persistedStateAllocCount: register.counter({
+        name: "lodestar_cp_state_cache_persisted_state_alloc_count",
+        help: "Total number time to allocate memory for persisted state",
       }),
     },
 

@@ -42,6 +42,7 @@ import {IExecutionEngine, IExecutionBuilder} from "../execution/index.js";
 import {Clock, ClockEvent, IClock} from "../util/clock.js";
 import {ensureDir, writeIfNotExist} from "../util/file.js";
 import {isOptimisticBlock} from "../util/forkChoice.js";
+import {BufferPool} from "../util/bufferPool.js";
 import {BlockProcessor, ImportBlockOpts} from "./blocks/index.js";
 import {ChainEventEmitter, ChainEvent} from "./emitter.js";
 import {IBeaconChain, ProposerPreparationData, BlockHash, StateGetOpts} from "./interface.js";
@@ -132,6 +133,7 @@ export class BeaconChain implements IBeaconChain {
   readonly seenGossipBlockInput = new SeenGossipBlockInput();
   // Seen cache for liveness checks
   readonly seenBlockAttesters = new SeenBlockAttesters();
+  readonly bufferPool: BufferPool;
 
   // Global state caches
   readonly pubkey2index: PubkeyIndexMap;
@@ -197,6 +199,7 @@ export class BeaconChain implements IBeaconChain {
     this.eth1 = eth1;
     this.executionEngine = executionEngine;
     this.executionBuilder = executionBuilder;
+    this.bufferPool = new BufferPool(anchorState.type.tree_serializedSize(anchorState.node), metrics);
     const signal = this.abortController.signal;
     const emitter = new ChainEventEmitter();
     // by default, verify signatures on both main threads and worker threads

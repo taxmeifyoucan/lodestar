@@ -7,6 +7,7 @@ import {loadCachedBeaconState} from "@lodestar/state-transition";
 import {Metrics} from "../../metrics/index.js";
 import {IClock} from "../../util/clock.js";
 import {ShufflingCache} from "../shufflingCache.js";
+import {BufferPool} from "../../util/bufferPool.js";
 import {MapTracker} from "./mapMetrics.js";
 import {
   CacheType,
@@ -25,6 +26,7 @@ type PersistentCheckpointStateCacheModules = {
   shufflingCache: ShufflingCache;
   persistentApis: CPStatePersistentApis;
   getHeadState?: GetHeadStateFn;
+  bufferPool?: BufferPool;
 };
 
 type InMemoryCacheItem = {
@@ -93,9 +95,18 @@ export class PersistentCheckpointStateCache implements CheckpointStateCache {
   private readonly persistentApis: CPStatePersistentApis;
   private readonly shufflingCache: ShufflingCache;
   private readonly getHeadState?: GetHeadStateFn;
+  private readonly bufferPool?: BufferPool;
 
   constructor(
-    {metrics, logger, clock, shufflingCache, persistentApis, getHeadState}: PersistentCheckpointStateCacheModules,
+    {
+      metrics,
+      logger,
+      clock,
+      shufflingCache,
+      persistentApis,
+      getHeadState,
+      bufferPool,
+    }: PersistentCheckpointStateCacheModules,
     opts: PersistentCheckpointStateCacheOpts
   ) {
     this.cache = new MapTracker(metrics?.cpStateCache);
@@ -132,6 +143,7 @@ export class PersistentCheckpointStateCache implements CheckpointStateCache {
     this.persistentApis = persistentApis;
     this.shufflingCache = shufflingCache;
     this.getHeadState = getHeadState;
+    this.bufferPool = bufferPool;
   }
 
   /**
@@ -461,7 +473,8 @@ export class PersistentCheckpointStateCache implements CheckpointStateCache {
               this.metrics?.statePersistSecFromSlot.observe(this.clock?.secFromSlot(this.clock?.currentSlot ?? 0) ?? 0);
               const timer = this.metrics?.statePersistDuration.startTimer();
               const cpPersist = {epoch: lowestEpoch, root: epochBoundaryRoot};
-              persistedKey = await this.persistentApis.write(cpPersist, state);
+
+              persistedKey = await this.persistentApis.write(cpPersist, this.serializeState(state));
               timer?.();
               persistCount++;
               this.logger.verbose("Pruned checkpoint state from memory and persisted to disk", {
@@ -598,6 +611,30 @@ export class PersistentCheckpointStateCache implements CheckpointStateCache {
       persistCount,
       rootHexes: Array.from(rootHexes).join(","),
     });
+  }
+
+  /*
+   * Serialize state to bytes leveraging buffer pool if possible.
+   * TODO: monitor and note metrics here
+   */
+  private serializeState(state: CachedBeaconStateAllForks): Uint8Array {
+    const size = state.type.tree_serializedSize(state.node);
+    if (this.bufferPool) {
+      const bufferWithKey = this.bufferPool.alloc(size);
+      if (bufferWithKey) {
+        try {
+          const stateBytes = bufferWithKey.buffer;
+          const dataView = new DataView(stateBytes.buffer, stateBytes.byteOffset, stateBytes.byteLength);
+          state.type.tree_serializeToBytes({uint8Array: stateBytes, dataView}, 0, state.node);
+          return stateBytes;
+        } finally {
+          this.bufferPool.free(bufferWithKey.key);
+        }
+      }
+    }
+
+    this.metrics?.persistedStateAllocCount.inc();
+    return state.serialize();
   }
 }
 

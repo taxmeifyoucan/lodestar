@@ -4,11 +4,11 @@ import {CPStatePersistentApis, PersistedKey} from "../../../../src/chain/stateCa
 
 export function getTestPersistentApi(fileApisBuffer: Map<string, Uint8Array>): CPStatePersistentApis {
   const persistentApis: CPStatePersistentApis = {
-    write: (cp, state) => {
+    write: (cp, stateBytes) => {
       const persistentKey = checkpointToPersistentKey(cp);
       const stringKey = toHexString(persistentKey);
       if (!fileApisBuffer.has(stringKey)) {
-        fileApisBuffer.set(stringKey, state.serialize());
+        fileApisBuffer.set(stringKey, stateBytes);
       }
       return Promise.resolve(persistentKey);
     },
