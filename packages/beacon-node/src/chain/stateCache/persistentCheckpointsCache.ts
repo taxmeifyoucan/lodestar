@@ -629,8 +629,12 @@ export class PersistentCheckpointStateCache implements CheckpointStateCache {
   }
 
   /*
-   * Serialize state to bytes leveraging buffer pool if possible.
-   * TODO: monitor and note metrics here
+   * It's not sustainable to allocate ~240MB for each state every epoch, so we use buffer pool to reuse the memory.
+   * As monitored on holesky as of Jan 2024:
+   *   - This does not increase heap allocation while gc time is the same
+   *   - It helps stabilize persist time and save ~300ms in average (1.5s vs 1.2s)
+   *   - It also helps the state reload to save ~500ms in average (4.3s vs 3.8s)
+   *   - Also `serializeState.test.ts` perf test shows a lot of differences allocating ~240MB once vs per state serialization
    */
   private serializeState(state: CachedBeaconStateAllForks): Uint8Array {
     const size = state.type.tree_serializedSize(state.node);
@@ -652,6 +656,13 @@ export class PersistentCheckpointStateCache implements CheckpointStateCache {
     return state.serialize();
   }
 
+  /**
+   * Serialize validators to bytes leveraging the buffer pool to save memory allocation.
+   *   - As monitored on holesky as of Jan 2024, it helps save ~500ms state reload time (4.3s vs 3.8s)
+   *   - Also `serializeState.test.ts` perf test shows a lot of differences allocating validators bytes once vs every time,
+   * This is 2x - 3x faster than allocating memory every time.
+   * TODO: consider serializing validators manually like in `serializeState.test.ts` perf test, this could be 3x faster than this
+   */
   private serializeStateValidators(state: CachedBeaconStateAllForks): Uint8Array {
     const type = state.type.fields.validators;
     const size = type.tree_serializedSize(state.validators.node);
