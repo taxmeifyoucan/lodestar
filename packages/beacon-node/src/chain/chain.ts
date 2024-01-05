@@ -256,7 +256,7 @@ export class BeaconChain implements IBeaconChain {
             bufferPool: new BufferPool(anchorState.type.tree_serializedSize(anchorState.node), metrics),
             // datastore: new DbCPStateDatastore(this.db),
             // TODO: add new flag
-            datastore: new FileCPStateDatastore(CHECKPOINT_STATES_FOLDER)
+            datastore: new FileCPStateDatastore(CHECKPOINT_STATES_FOLDER),
           },
           this.opts
         )
@@ -930,14 +930,15 @@ export class BeaconChain implements IBeaconChain {
     this.seenBlockProposers.prune(computeStartSlotAtEpoch(cp.epoch));
 
     // TODO: Improve using regen here
-    const headState = this.regen.getStateSync(this.forkChoice.getHead().stateRoot);
-    // the finalized state could be from disk
-    const finalizedStateOrBytes = await this.regen.getCheckpointStateOrBytes(cp);
-    if (!finalizedStateOrBytes) {
-      throw Error("No state in cache for finalized checkpoint state epoch #" + cp.epoch);
+    const {blockRoot, stateRoot, slot} = this.forkChoice.getHead();
+    const headState = this.regen.getStateSync(stateRoot);
+    const headBlock = await this.db.block.get(fromHexString(blockRoot));
+    if (headBlock == null) {
+      throw Error(`Head block ${slot} ${headBlock} is not available in database`);
     }
+
     if (headState) {
-      this.opPool.pruneAll(headState, finalizedStateOrBytes);
+      this.opPool.pruneAll(headBlock, headState);
     }
   }
 

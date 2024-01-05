@@ -5,7 +5,6 @@ import {
   computeStartSlotAtEpoch,
   getAttesterSlashableIndices,
   isValidVoluntaryExit,
-  getWithdrawalCredentialFirstByteFromValidatorBytes,
 } from "@lodestar/state-transition";
 import {Repository, Id} from "@lodestar/db";
 import {
@@ -14,15 +13,14 @@ import {
   MAX_BLS_TO_EXECUTION_CHANGES,
   BLS_WITHDRAWAL_PREFIX,
   MAX_ATTESTER_SLASHINGS,
+  ForkSeq,
 } from "@lodestar/params";
-import {Epoch, phase0, capella, ssz, ValidatorIndex} from "@lodestar/types";
-import {ChainForkConfig} from "@lodestar/config";
+import {Epoch, phase0, capella, ssz, ValidatorIndex, allForks} from "@lodestar/types";
 import {IBeaconDb} from "../../db/index.js";
 import {SignedBLSToExecutionChangeVersioned} from "../../util/types.js";
 import {BlockType} from "../interface.js";
 import {Metrics} from "../../metrics/metrics.js";
 import {BlockProductionStep} from "../produceBlock/produceBlockBody.js";
-import {getValidatorsBytesFromStateBytes} from "../../util/sszBytes.js";
 import {isValidBlsToExecutionChangeForBlockInclusion} from "./utils.js";
 
 type HexRoot = string;
@@ -303,11 +301,11 @@ export class OpPool {
   /**
    * Prune all types of transactions given the latest head state
    */
-  pruneAll(headState: CachedBeaconStateAllForks, finalizedState: CachedBeaconStateAllForks | Uint8Array): void {
+  pruneAll(headBlock: allForks.SignedBeaconBlock, headState: CachedBeaconStateAllForks): void {
     this.pruneAttesterSlashings(headState);
     this.pruneProposerSlashings(headState);
     this.pruneVoluntaryExits(headState);
-    this.pruneBlsToExecutionChanges(headState.config, finalizedState);
+    this.pruneBlsToExecutionChanges(headBlock, headState);
   }
 
   /**
@@ -372,38 +370,32 @@ export class OpPool {
   }
 
   /**
-   * Call after finalizing
-   * Prune blsToExecutionChanges for validators which have been set with withdrawal
-   * credentials
+   * Prune BLS to execution changes that have been applied to the state more than 1 block ago.
+   * In the worse case where head block is reorged, the same BlsToExecutionChange message can be re-added
+   * to opPool once gossipsub seen cache TTL passes.
    */
   private pruneBlsToExecutionChanges(
-    config: ChainForkConfig,
-    finalizedStateOrBytes: CachedBeaconStateAllForks | Uint8Array
+    headBlock: allForks.SignedBeaconBlock,
+    headState: CachedBeaconStateAllForks
   ): void {
-    const validatorBytes =
-      finalizedStateOrBytes instanceof Uint8Array
-        ? getValidatorsBytesFromStateBytes(config, finalizedStateOrBytes)
-        : null;
+    const {config} = headState;
+    const recentBlsToExecutionChanges =
+      config.getForkSeq(headBlock.message.slot) >= ForkSeq.capella
+        ? (headBlock as capella.SignedBeaconBlock).message.body.blsToExecutionChanges
+        : [];
+
+    const recentBlsToExecutionChangeIndexes = new Set<ValidatorIndex>();
+    for (const blsToExecutionChange of recentBlsToExecutionChanges) {
+      recentBlsToExecutionChangeIndexes.add(blsToExecutionChange.message.validatorIndex);
+    }
+
     for (const [key, blsToExecutionChange] of this.blsToExecutionChanges.entries()) {
-      // finalized state bytes should always be available in memory on on disk
-      let withdrawalCredentialFirstByte: number | null;
-      const validatorIndex = blsToExecutionChange.data.message.validatorIndex;
-      if (finalizedStateOrBytes instanceof Uint8Array) {
-        if (!validatorBytes) {
-          throw Error(
-            "Not able to extract validator bytes from finalized state bytes with length " + finalizedStateOrBytes.length
-          );
+      const {validatorIndex} = blsToExecutionChange.data.message;
+      if (!recentBlsToExecutionChangeIndexes.has(validatorIndex)) {
+        const validator = headState.validators.getReadonly(validatorIndex);
+        if (validator.withdrawalCredentials[0] !== BLS_WITHDRAWAL_PREFIX) {
+          this.blsToExecutionChanges.delete(key);
         }
-        withdrawalCredentialFirstByte = getWithdrawalCredentialFirstByteFromValidatorBytes(
-          validatorBytes,
-          validatorIndex
-        );
-      } else {
-        const validator = finalizedStateOrBytes.validators.getReadonly(validatorIndex);
-        withdrawalCredentialFirstByte = validator.withdrawalCredentials[0];
-      }
-      if (withdrawalCredentialFirstByte !== BLS_WITHDRAWAL_PREFIX) {
-        this.blsToExecutionChanges.delete(key);
       }
     }
   }
