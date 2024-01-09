@@ -123,7 +123,7 @@ export class Eth2Gossipsub extends GossipSub {
       metricsRegister: metricsRegister as MetricsRegister | null,
       metricsTopicStrToLabel: metricsRegister ? getMetricsTopicStrToLabel(config) : undefined,
       asyncValidation: true,
-
+      batchPublish: true,
       maxOutboundBufferSize: MAX_OUTBOUND_BUFFER_SIZE,
     });
     this.scoreParams = scoreParams;
